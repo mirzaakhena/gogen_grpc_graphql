@@ -1,9 +1,9 @@
 package application
 
 import (
-	"gogen_grpc/domain_demogrpc/controller/graphqlserver"
-	"gogen_grpc/domain_demogrpc/gateway/emptyimpl"
-	"gogen_grpc/domain_demogrpc/usecase/runmessagereverse"
+	"gogen_grpc/domain_demo/controller/graphqlserver"
+	"gogen_grpc/domain_demo/gateway/emptyimpl"
+	"gogen_grpc/domain_demo/usecase/runmessagereverse"
 	"gogen_grpc/shared/config"
 	"gogen_grpc/shared/gogen"
 	"gogen_grpc/shared/infrastructure/logger"
@@ -17,7 +17,7 @@ func NewAppServer() gogen.Runner {
 
 func (appServer) Run() error {
 
-	const appName = "appserver"
+	const appName = "appServer"
 
 	cfg := config.ReadConfig()
 

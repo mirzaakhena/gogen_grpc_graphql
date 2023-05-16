@@ -2,7 +2,7 @@ package restapi
 
 import (
 	"context"
-	"gogen_grpc/domain_demogrpc/usecase/runmessagesend"
+	"gogen_grpc/domain_demo/usecase/runmessagesend"
 	"gogen_grpc/shared/gogen"
 	"gogen_grpc/shared/infrastructure/logger"
 	"gogen_grpc/shared/model/payload"

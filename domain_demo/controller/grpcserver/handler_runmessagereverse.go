@@ -2,7 +2,7 @@ package grpcserver
 
 import (
 	"context"
-	"gogen_grpc/domain_demogrpc/usecase/runmessagereverse"
+	"gogen_grpc/domain_demo/usecase/runmessagereverse"
 	"gogen_grpc/shared/gogen"
 	"gogen_grpc/shared/pb/grpcstub"
 )

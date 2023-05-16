@@ -1,6 +1,6 @@
-# Gogen grpc
+# Gogen gRPC GraphQL
 
-In this repo we are demonstrating on how to use the grpc communication between application using the gogen framework
+In this repo we are demonstrating on how to use the Grpc and GraphQL communication between application using the gogen framework
 
 ## Gogen Framework
 For the Gogen Framework Structure, you can refer to here link
@@ -10,8 +10,8 @@ For the Gogen Framework Structure, you can refer to here link
 ## Application Architecture
 
 The application consist of two parts
-1. Client : Has a restapi interface to invoke the grpc client
-2. Server : Has a grpc server to receive the request, process it and then return back to grpc client
+1. Client : Has a restapi interface to invoke the gRPC or GraphQL client
+2. Server : Has a gRPC or GraphQL server to receive the request, process it and then return back to client (gRPC or GraphQL)
 
 ![gogen grpc architecture](https://github.com/mirzaakhena/gogengrpc/blob/main/gogen_grpc_architecture.png)
 
@@ -19,15 +19,17 @@ The application consist of two parts
 ```text
 gogen_grpc
 ├── application
-│  ├── app_appclient.go
-│  └── app_appserver.go
-├── domain_demogrpc
+│  ├── app_client.go
+│  └── app_server.go
+├── domain_demo
 │  ├── controller
-│  │  ├── grpcreceiver
+│  │  ├── graphqlserver
+│  │  ├── grpcserver
 │  │  └── restapi
 │  ├── gateway
 │  │  ├── emptyimpl
-│  │  └── grpcsender
+│  │  ├── graphqlclient
+│  │  └── grpcclient
 │  └── usecase
 │      ├── runmessagereverse
 │      └── runmessagesend
@@ -65,6 +67,19 @@ gogen_grpc
      "traceId": "Z1RCGNXYTR2QCNVK"
    }   
     ```
+
+## How to switch technology
+For the client you may comment / uncomment this part
+```
+//primaryDriver := grpcserver.NewController(log, cfg)
+primaryDriver := graphqlserver.NewController(log, cfg)
+```
+
+For the server you may comment / uncomment this part
+```
+//datasource := grpcclient.NewGateway(log, appData, cfg)
+datasource := graphqlclient.NewGateway(log, appData, cfg)
+```
 
 ## GRPC Stub Generation
 
@@ -189,4 +204,175 @@ func (r *gateway) SendMessage(ctx context.Context, message string) (string, erro
 	return response.Content, nil
 }
 
+```
+
+## GRAPHQL Server in Controller
+
+```
+type controller struct {
+	gogen.UsecaseRegisterer             // collect all the inports
+	Router                  *gin.Engine // the router from preference web framework
+	log                     logger.Logger
+	cfg                     *config.Config
+	fields                  graphql.Fields
+}
+
+func NewController(log logger.Logger, cfg *config.Config) gogen.ControllerRegisterer {
+
+	return &controller{
+		UsecaseRegisterer: gogen.NewBaseController(),
+		log:               log,
+		cfg:               cfg,
+		fields:            map[string]*graphql.Field{},
+	}
+
+}
+
+func (r *controller) RegisterRouter() {
+	r.fields["reverseMessage"] = r.sendMessageHandler()
+}
+
+func (r *controller) Start() {
+
+	rootQuery := graphql.ObjectConfig{Name: "RootQuery", Fields: r.fields}
+	schemaConfig := graphql.SchemaConfig{Query: graphql.NewObject(rootQuery)}
+	schema, err := graphql.NewSchema(schemaConfig)
+	if err != nil {
+		fmt.Println("Error creating schema: ", err)
+		return
+	}
+
+	// Create a new GraphQL HTTP handler with the schema
+	graphqlHandler := handler.New(&handler.Config{
+		Schema: &schema,
+		Pretty: true,
+	})
+
+	// Serve the GraphQL endpoint
+	http.Handle("/graphql", graphqlHandler)
+	fmt.Println("GraphQL Server running on http://localhost:8080/graphql")
+	http.ListenAndServe(":8080", nil)
+
+}
+
+func (r *controller) sendMessageHandler() *graphql.Field {
+
+	return &graphql.Field{
+		Type:        graphql.String,
+		Description: "Reverses a given message",
+		Args: graphql.FieldConfigArgument{
+			"message": &graphql.ArgumentConfig{
+				Type: graphql.String,
+			},
+		},
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+
+			type InportRequest = runmessagereverse.InportRequest
+			type InportResponse = runmessagereverse.InportResponse
+
+			inport := gogen.GetInport[InportRequest, InportResponse](r.GetUsecase(InportRequest{}))
+
+			traceID := util.GenerateID(16)
+
+			ctx := logger.SetTraceID(context.Background(), traceID)
+
+			var req InportRequest
+
+			message, ok := p.Args["message"].(string)
+			if !ok {
+				return nil, fmt.Errorf("Invalid message type")
+			}
+
+			req.Message = message
+
+			res, err := inport.Execute(ctx, req)
+			if err != nil {
+				return nil, err
+			}
+
+			return res.ReturnMessage, nil
+
+		},
+	}
+
+}
+
+```
+
+## GRAPHQL Client in Gateway
+```
+type GraphQLRequest struct {
+	Query     string                 `json:"query"`
+	Variables map[string]interface{} `json:"variables"`
+}
+
+type GraphQLResponse struct {
+	Data   interface{} `json:"data"`
+	Errors []struct {
+		Message string `json:"message"`
+	} `json:"errors"`
+}
+
+func (r *gateway) SendMessage(ctx context.Context, message string) (string, error) {
+	r.log.Info(ctx, "called in GraphQL Gateway")
+
+	// Define the GraphQL query
+	query := `
+		query ReverseMessage($message: String!) {
+			reverseMessage(message: $message)
+		}
+	`
+
+	// Define the query variables
+	variables := map[string]interface{}{
+		"message": message,
+	}
+
+	// Create a GraphQL request
+	request := GraphQLRequest{
+		Query:     query,
+		Variables: variables,
+	}
+
+	// Convert the request to JSON
+	requestJSON, err := json.Marshal(request)
+	if err != nil {
+		return "", err
+	}
+
+	// Send a POST request to the GraphQL server
+	resp, err := http.Post("http://localhost:8080/graphql", "application/json", bytes.NewBuffer(requestJSON))
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	// Read the response body
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	// Parse the GraphQL response
+	var response GraphQLResponse
+
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		return "", err
+	}
+
+	// Check for errors in the response
+	if len(response.Errors) > 0 {
+		errs := ""
+		for _, err := range response.Errors {
+			errs += err.Message + ", "
+		}
+		return "", fmt.Errorf(errs)
+	}
+
+	// Extract the reversed message from the response
+	reversedMessage := response.Data.(map[string]interface{})["reverseMessage"].(string)
+
+	return reversedMessage, nil
+}
 ```

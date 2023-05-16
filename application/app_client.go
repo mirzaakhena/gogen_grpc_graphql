@@ -1,9 +1,9 @@
 package application
 
 import (
-	"gogen_grpc/domain_demogrpc/controller/restapi"
-	"gogen_grpc/domain_demogrpc/gateway/graphqlclient"
-	"gogen_grpc/domain_demogrpc/usecase/runmessagesend"
+	"gogen_grpc/domain_demo/controller/restapi"
+	"gogen_grpc/domain_demo/gateway/graphqlclient"
+	"gogen_grpc/domain_demo/usecase/runmessagesend"
 	"gogen_grpc/shared/config"
 	"gogen_grpc/shared/gogen"
 	"gogen_grpc/shared/infrastructure/logger"

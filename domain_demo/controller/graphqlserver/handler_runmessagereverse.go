@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/graphql-go/graphql"
-	"gogen_grpc/domain_demogrpc/usecase/runmessagereverse"
+	"gogen_grpc/domain_demo/usecase/runmessagereverse"
 	"gogen_grpc/shared/gogen"
 	"gogen_grpc/shared/infrastructure/logger"
 	"gogen_grpc/shared/util"
