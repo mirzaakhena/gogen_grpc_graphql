@@ -13,7 +13,7 @@ The application consist of two parts
 1. Client : Has a restapi interface to invoke the gRPC or GraphQL client
 2. Server : Has a gRPC or GraphQL server to receive the request, process it and then return back to client (gRPC or GraphQL)
 
-![gogen grpc architecture](https://github.com/mirzaakhena/gogengrpc/blob/main/gogen_grpc_architecture.png)
+![gogen grpc architecture](https://github.com/mirzaakhena/gogen_grpc_graphql/blob/main/gogen_grpc_architecture.png)
 
 ## Folder structure
 ```text
