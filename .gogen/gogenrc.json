@@ -1,0 +1,6 @@
+{
+ "domain": "demogrpc",
+ "controller": "gin",
+ "gateway": "simple",
+ "crud": "gin"
+}

@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package mypackage;
+
+option go_package = "./grpcstub";
+
+message MessageReverseRequest {
+  string content = 1;
+}
+
+message MessageReverseResponse {
+  string content = 1;
+}
+
+service MyService {
+  rpc SendMessage(MessageReverseRequest) returns (MessageReverseResponse);
+}
