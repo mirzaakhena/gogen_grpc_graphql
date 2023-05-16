@@ -1,6 +1,6 @@
 # Gogen gRPC GraphQL
 
-In this repo we are demonstrating on how to use the Grpc and GraphQL communication between application using the gogen framework
+In this repo we are demonstrating on how to use the Grpc or GraphQL communication between application using the gogen framework that also apply the Clean Architecture
 
 ## Gogen Framework
 For the Gogen Framework Structure, you can refer to here link
@@ -17,7 +17,7 @@ The application consist of two parts
 
 ## Folder structure
 ```text
-gogen_grpc
+gogen_grpc_graphql
 ├── application
 │  ├── app_client.go
 │  └── app_server.go
@@ -68,14 +68,15 @@ gogen_grpc
    }   
     ```
 
-## How to switch technology
-For the client you may comment / uncomment this part
+## How to switch technology between gRPC and GraphQL
+
+For the server you may comment / uncomment this part (`application/app_server.go`)
 ```
 //primaryDriver := grpcserver.NewController(log, cfg)
 primaryDriver := graphqlserver.NewController(log, cfg)
 ```
 
-For the server you may comment / uncomment this part
+For the client you may comment / uncomment this part (`application/app_client.go`)
 ```
 //datasource := grpcclient.NewGateway(log, appData, cfg)
 datasource := graphqlclient.NewGateway(log, appData, cfg)
