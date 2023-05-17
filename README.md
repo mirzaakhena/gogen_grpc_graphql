@@ -45,8 +45,8 @@ gogen_grpc_graphql
 ## How to run the application
 
 1. After you git clone it, make sure to run the `go mod tidy` to download the dependency
-2. Run the server application by `go run main.go appserver`
-3. Run the client application by `go run main.go appclient`
+2. Run the server application by `go run main.go server`
+3. Run the client application by `go run main.go client`
 4. invoke this api with curl, postman or use the file `http_runmessagesend.http` under `domain_demogrpc/controller/restapi`
 
     ```
